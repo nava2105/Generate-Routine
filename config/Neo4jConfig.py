@@ -6,24 +6,24 @@ load_dotenv()
 
 
 class Neo4jConfig:
+    """
+    Configuration for Neo4j database connections.
+    """
+
     def __init__(self):
-        db_uri = os.getenv('NEO4J_URI')
-        db_user = os.getenv('NEO4J_USER')
-        db_password = os.getenv('NEO4J_PASSWORD')
+        self.db_uri = os.getenv('NEO4J_URI')
+        self.db_user = os.getenv('NEO4J_USER')
+        self.db_password = os.getenv('NEO4J_PASSWORD')
+        self.driver = GraphDatabase.driver(self.db_uri, auth=(self.db_user, self.db_password))
 
-        self.driver = GraphDatabase.driver(db_uri, auth=(db_user, db_password))
-
-    def fetch_all_nodes(self):
-        with self.driver.session() as session:
-            result = session.run("MATCH (n) RETURN n")
-            for record in result:
-                print(record)
+    def get_driver(self):
+        """
+        Returns the Neo4j driver instance.
+        """
+        return self.driver
 
     def close(self):
+        """
+        Closes the connection to the Neo4j database.
+        """
         self.driver.close()
-
-
-if __name__ == "__main__":
-    config = Neo4jConfig()
-    config.fetch_all_nodes()
-    config.close()
