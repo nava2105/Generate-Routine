@@ -13,9 +13,9 @@ UNWIND [
     "reverse fly", "cable pulldown", "lat pulldown", "hanging leg raise", "ab roller", "farmer's carry",
     "side plank", "hip thrust", "cable crossover", "t-bar row", "seated row", "cable curl", "preacher curl",
     "dumbbell pullover", "romanian deadlift", "glute bridge", "split squat", "peck deck", "tricep dips",
-    "kettlebell swing", "snatch", "clean and jerk", "mountain climbers", "burpees", "pike push-up",
-    "skullcrushers", "seated calf raise", "hang clean",
-    "abductor side lift", "abductor squat", "dumbbell abductor lunge", "standing abductor raise"
+    "kettlebell swing", "snatch", "clean and jerk", "mountain climbers", "pike push-up", "skullcrushers",
+    "seated calf raise", "hang clean", "abductor side lift", "abductor squat", "dumbbell abductor lunge",
+    "standing abductor raise"
 ] AS exercise
 CREATE (:Exercise {name: exercise});
 
@@ -95,23 +95,22 @@ UNWIND [
     {exercise: "ab roller", muscles: {direct: ["abs"], indirect: []}, requirement: ["none"]},
     {exercise: "farmer's carry", muscles: {direct: ["forearms"], indirect: ["traps", "core"]}, requirement: ["dumbbells", "kettlebell"]},
     {exercise: "side plank", muscles: {direct: ["abs"], indirect: ["obliques"]}, requirement: ["none"]},
-    {exercise: "hip thrust", muscles: {direct: ["glutes"], indirect: ["hamstrings"]}, requirement: ["barbell", "machine"]},
+    {exercise: "hip thrust", muscles: {direct: ["glutes"], indirect: ["hams"]}, requirement: ["barbell", "machine"]},
     {exercise: "cable crossover", muscles: {direct: ["chest"], indirect: []}, requirement: ["cable"]},
     {exercise: "t-bar row", muscles: {direct: ["back"], indirect: ["biceps"]}, requirement: ["machine"]},
     {exercise: "seated row", muscles: {direct: ["back"], indirect: ["biceps"]}, requirement: ["cable", "machine"]},
     {exercise: "cable curl", muscles: {direct: ["biceps"], indirect: []}, requirement: ["cable"]},
     {exercise: "preacher curl", muscles: {direct: ["biceps"], indirect: []}, requirement: ["barbell", "dumbbells"]},
     {exercise: "dumbbell pullover", muscles: {direct: ["chest"], indirect: ["back"]}, requirement: ["dumbbells"]},
-    {exercise: "romanian deadlift", muscles: {direct: ["hamstrings"], indirect: ["glutes", "lower back"]}, requirement: ["barbell", "dumbbells"]},
-    {exercise: "glute bridge", muscles: {direct: ["glutes"], indirect: ["hamstrings"]}, requirement: ["none"]},
+    {exercise: "romanian deadlift", muscles: {direct: ["hams"], indirect: ["glutes", "lower back"]}, requirement: ["barbell", "dumbbells"]},
+    {exercise: "glute bridge", muscles: {direct: ["glutes"], indirect: ["hams"]}, requirement: ["none"]},
     {exercise: "split squat", muscles: {direct: ["quads", "glutes"], indirect: []}, requirement: ["dumbbells"]},
     {exercise: "peck deck", muscles: {direct: ["chest"], indirect: []}, requirement: ["machine"]},
     {exercise: "tricep dips", muscles: {direct: ["triceps"], indirect: ["chest"]}, requirement: ["none"]},
-    {exercise: "kettlebell swing", muscles: {direct: ["glutes", "hamstrings"], indirect: ["back"]}, requirement: ["kettlebell"]},
+    {exercise: "kettlebell swing", muscles: {direct: ["glutes", "hams"], indirect: ["back"]}, requirement: ["kettlebell"]},
     {exercise: "snatch", muscles: {direct: ["delts"], indirect: ["traps", "glutes"]}, requirement: ["barbell", "kettlebell"]},
     {exercise: "clean and jerk", muscles: {direct: ["delts", "quads"], indirect: ["traps", "glutes"]}, requirement: ["barbell"]},
     {exercise: "mountain climbers", muscles: {direct: ["abs"], indirect: ["quads"]}, requirement: ["none"]},
-    {exercise: "burpees", muscles: {direct: ["chest", "quads"], indirect: ["abs"]}, requirement: ["none"]},
     {exercise: "pike push-up", muscles: {direct: ["delts"], indirect: ["triceps"]}, requirement: ["none"]},
     {exercise: "skullcrushers", muscles: {direct: ["triceps"], indirect: []}, requirement: ["barbell", "dumbbells"]},
     {exercise: "seated calf raise", muscles: {direct: ["calves"], indirect: []}, requirement: ["machine"]},
@@ -126,10 +125,10 @@ UNWIND keys(data.muscles) AS type
 UNWIND data.muscles[type] AS muscle
 MATCH (m:Muscle {name: muscle})
 WITH e, m, type, data
-FOREACH ( IN CASE WHEN type = "direct" THEN [1] ELSE [] END |
+FOREACH (_ IN CASE WHEN type = "direct" THEN [1] ELSE [] END |
     MERGE (e)-[:WORKS_DIRECTLY]->(m)
 )
-FOREACH ( IN CASE WHEN type = "indirect" THEN [1] ELSE [] END |
+FOREACH (_ IN CASE WHEN type = "indirect" THEN [1] ELSE [] END |
     MERGE (e)-[:WORKS_INDIRECTLY]->(m)
 )
 WITH e, data
