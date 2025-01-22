@@ -64,10 +64,10 @@ async def get_groups_by_distribution(distribution_name: str):
     raise HTTPException(status_code=404, detail=f"No groups found for distribution '{distribution_name}'.")
 
 
-@router.get("/routine/{distribution_name}/{days_per_week}")
-async def get_routine(distribution_name: str, days_per_week: int):
+@router.get("/routine/{distribution_name}")
+async def get_routine(distribution_name: str):
     try:
-        routines = routine_generator.generate_routines(distribution_name, days_per_week)
+        routines = routine_generator.generate_routines(distribution_name)
         print("Generated Routines:")
         list_of_routines = []
         for routine in routines:
