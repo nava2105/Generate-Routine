@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from factories.PostgresRepositoryFactory import PostgresRepositoryFactory
 from factories.Neo4jRepositoryFactory import Neo4jRepositoryFactory
-from RoutineGeneratorService import RoutineGenerator
+from services.RoutineGeneratorService import RoutineGenerator
 from factories.CouchdbRepositoryFactory import CouchdbRepositoryFactory
+from services.AuthService import authenticate_user
 
 router = APIRouter()
 
@@ -23,80 +24,8 @@ async def root():
     return {"message": "Hello World"}
 
 
-@router.get("/volume/{muscle_name}")
-async def get_volume(muscle_name: str):
-    """
-    Endpoint to fetch training volume information for a specific muscle group.
-    """
-    volume_data = volumes_repository.get_volume_by_muscle_name(muscle_name)
-    if volume_data:
-        return volume_data
-    raise HTTPException(status_code=404, detail=f"Muscle group '{muscle_name}' not found.")
-
-
-@router.get("/exercises/{muscle_name}")
-async def get_exercises(muscle_name: str):
-    """
-    Endpoint to fetch exercises for a specific muscle group.
-    """
-    exercises = exercises_repository.get_exercises_by_muscle(muscle_name)
-    if exercises:
-        return exercises
-    raise HTTPException(status_code=404, detail=f"No exercises found for muscle group '{muscle_name}'.")
-
-
-@router.get("/muscles_by_group/{group_name}")
-async def get_muscles_by_group(group_name: str):
-    """
-    Endpoint to fetch muscles associated with a specific group.
-    """
-    muscles_by_group = exercises_repository.get_muscles_by_group(group_name)
-    if muscles_by_group:
-        return muscles_by_group
-    raise HTTPException(status_code=404, detail=f"No muscles found for group '{group_name}'.")
-
-
-@router.get("/groups_by_distribution/{distribution_name}")
-async def get_groups_by_distribution(distribution_name: str):
-    """
-    Endpoint to fetch groups associated with a specific distribution.
-    """
-    groups_by_distribution = exercises_repository.get_groups_by_distribution(distribution_name)
-    if groups_by_distribution:
-        return groups_by_distribution
-    raise HTTPException(status_code=404, detail=f"No groups found for distribution '{distribution_name}'.")
-
-
-@router.get("/routine/{distribution_name}")
-async def get_routine(distribution_name: str):
-    try:
-        routines = routine_generator.generate_routines(distribution_name)
-        print("Generated Routines:")
-        list_of_routines = []
-        for routine in routines:
-            print(routine)
-            list_of_routines.append(routine)
-    except ValueError as error:
-        print(f"Error: {error}")
-        raise HTTPException(status_code=404, detail=error.args[0])
-    return list_of_routines
-
-@router.post("/routines/{user_id}")
-async def create_routine(user_id: str, routine_data: dict):
-    """
-    Endpoint to save a new routine for a user.
-
-    :param user_id: The user ID.
-    :param routine_data: The routine details.
-    """
-    response = routines_repository.save_routine(user_id, routine_data)
-    if response:
-        return {"message": "Routine saved successfully.", "id": response}
-    raise HTTPException(status_code=400, detail="Error saving routine.")
-
-
-@router.get("/routines/{user_id}")
-async def get_routines(user_id: str):
+@router.get("/get/routines")
+async def get_routines(user_id: int = Depends(authenticate_user)):
     """
     Endpoint to retrieve all routines for a user.
 
@@ -108,20 +37,8 @@ async def get_routines(user_id: str):
     raise HTTPException(status_code=404, detail=f"No routines found for user {user_id}.")
 
 
-@router.delete("/routines/{user_id}")
-async def delete_routine(user_id: str):
-    """
-    Endpoint to delete a user's routine.
-
-    :param user_id: The user ID.
-    """
-    success = routines_repository.delete_routine(user_id)
-    if success:
-        return {"message": "Routine deleted successfully."}
-    raise HTTPException(status_code=404, detail=f"No routine found for user {user_id}.")
-
-@router.get("/routine/{user_id}/{distribution_name}")
-async def generate_and_save_routine(user_id: str, distribution_name: str):
+@router.post("/create/routines/{distribution_name}")
+async def generate_and_save_routine(distribution_name: str, user_id: int = Depends(authenticate_user)):
     """
     Endpoint to generate a routine based on distribution and save it for a user.
 
@@ -143,7 +60,7 @@ async def generate_and_save_routine(user_id: str, distribution_name: str):
             "routines": routines
         }
         response = routines_repository.save_routine(user_id, routine_data)
-        return routine_data;
+        return routine_data
 
     except ValueError as error:
         # Specific handling for domain-specific errors

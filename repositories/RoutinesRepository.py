@@ -20,7 +20,7 @@ class RoutinesRepository:
         if self.db_name not in self.server:
             self.server.create(self.db_name)
 
-    def save_routine(self, user_id: str, routine_data: dict):
+    def save_routine(self, user_id: int, routine_data: dict):
         """
         Save or update a routine for a specific user in CouchDB.
 
@@ -29,11 +29,11 @@ class RoutinesRepository:
         :return: A tuple (id, rev) with the CouchDB document ID and revision.
         """
         db = self.server[self.db_name]
-        routine_data["_id"] = user_id  # Use the user ID as the document ID
+        routine_data["_id"] = str(user_id)  # Use the user ID as the document ID
         try:
             # Check if the document already exists (handle updates)
-            if user_id in db:
-                existing_doc = db[user_id]
+            if str(user_id) in db:
+                existing_doc = db[str(user_id)]
                 routine_data["_rev"] = existing_doc["_rev"]  # Add revision for update
 
             # Save document (insert new or update existing) and return the response
@@ -44,7 +44,7 @@ class RoutinesRepository:
             print(f"Error saving routine for user {user_id}: {e}")  # Log the actual error
             raise e  # Re-raise the exception to surface it properly
 
-    def get_routines_by_user_id(self, user_id: str):
+    def get_routines_by_user_id(self, user_id: int):
         """
         Retrieves all routines for a specific user.
 
@@ -53,8 +53,8 @@ class RoutinesRepository:
         """
         db = self.server[self.db_name]
         try:
-            if user_id in db:
-                return db[user_id]
+            if str(user_id) in db:
+                return db[str(user_id)]
             else:
                 print(f"No routines found for user {user_id}")
                 return None
